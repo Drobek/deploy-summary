@@ -39,8 +39,10 @@ def get_story_from_message(message)
 		message.sub(/\[.*#(.*?)\]/) { story_id = $1 }
 		message.sub(/\[(.*?)#.*\]/){ story_type = $1 }
 	end
+	if (!story_id && !story_type && message.include?('merge'))
+			story_type = 'merge'
+	end
 	ret = [story_id,story_type]
-	p ret
 	return ret
 end
 
