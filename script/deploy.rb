@@ -4,6 +4,7 @@ require 'rubygems'
 require 'json'
 require 'pivotal-tracker' #https://github.com/jsmestad/pivotal-tracker 
 require 'mail'
+require 'net/smtp'
 
 PIVOTAL_PROJECT_ID = 444391
 PIVOTAL_ACCESS_TOKEN = 'a479c65816fd6910ebfbe0c3700c6900'
@@ -146,6 +147,33 @@ def compose_email(commits)
 	return body
 end
 
+def send_email(text)
+	#TODO: chenge to other smtp server
+	options = { :address              => "smtp.gmail.com",
+		:port                 => 587,
+		:user_name            => 'deploy.summary@gmail.com',
+		:password             => 'deploy128',
+		:authentication       => 'plain',
+		:enable_starttls_auto => true  }
+
+	Mail.defaults do
+		delivery_method :smtp, options
+	end
+
+	Mail.deliver do
+		to 'deploy.summary@gmail.com' #TODO: change to preset email or use some sort of options file
+		from 'ondrej.maly128@gmail.com' #TODO: change to last commiter or any preset email
+		subject 'Deploy summary'
+		text_part do
+			Nokogiri::HTML(text).text
+		end
+		html_part do
+			content_type 'text/html; charset=UTF-8'
+			body text
+		end
+	end
+end
+
 del = distribute_commits()
-#p compose_email(del)
-#p commits
+text = compose_email(del)
+send_email(text)
