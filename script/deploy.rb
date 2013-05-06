@@ -44,7 +44,7 @@ def get_story_from_message(message)
 		message.sub(/\[.*#(.*?)\]/) { story_id = $1 }
 		message.sub(/\[(.*?)#.*\]/){ story_type = $1 }
 	end
-	if (!story_id && !story_type && message.include?('merge'))
+	if (!story_id && !story_type && message.downcase.include?('merge'))
 		story_type = 'merge'
 	end
 	ret = [story_id,story_type]
@@ -115,7 +115,7 @@ def distribute_commits
 				in_progress.push(act)
 			end
 		else
-			if (!commit.message.downcase.include?('merge'))
+			if (story_type != 'merge')
 				act = [commit.author_name, commit.author_email, commit.message]
 				other.push(act)
 			end
