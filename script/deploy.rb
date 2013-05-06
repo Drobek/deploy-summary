@@ -51,6 +51,15 @@ def get_story_from_message(message)
 	return ret
 end
 
+def remove_story_tag_from_message(message)
+	if message=~/\[(.*)\]/
+		res = nil
+		message.sub(/\[(.*)\](.*)/) { res = $2 }
+		return res
+	end
+	return message
+end
+
 def get_commits
 	file = File.open("commits_examples")
 
@@ -61,6 +70,7 @@ def get_commits
 		story = get_story_from_message(message)
 		story_id = story[0]
 		story_type = story[1]
+		message = remove_story_tag_from_message(message)
 		
 		act_commit = Commit.new(act_data['commit']['author']['name'],
 			act_data['commit']['author']['email'],
