@@ -7,6 +7,9 @@ require 'mail'
 require 'net/smtp'
 require 'heroku-api'
 
+ENV["RAILS_ENV"] ||= "development"
+require "#{File.dirname(__FILE__)}/../config/environment.rb"
+
 PIVOTAL_PROJECT_ID = 444391
 PIVOTAL_ACCESS_TOKEN = 'a479c65816fd6910ebfbe0c3700c6900'
 GITHUB_ACCESS_TOKEN = 'c2c039387a8fa7007b37116a516606c4bc07afab'
@@ -170,7 +173,7 @@ def send_email(text)
 	end
 
 	Mail.deliver do
-		to 'deploy.summary@gmail.com' #TODO: change to preset email or use some sort of options file
+		to DEFAULT_TO_EMAIL
 		from 'ondrej.maly128@gmail.com' #TODO: change to last commiter or any preset email
 		subject 'Deploy summary'
 		text_part do
@@ -186,4 +189,4 @@ end
 del = distribute_commits()
 text = compose_email(del)
 send_email(text)
-get_releases
+#get_releases

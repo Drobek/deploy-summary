@@ -34,4 +34,7 @@ ClarityfmDeploySummary::Application.configure do
 
   # Expands the lines which load the assets
   config.assets.debug = true
+
+	DEFAULT_TO_EMAIL = ENV['DEPLOY_SUMMARY_TO_EMAIL'] || "ondrej.maly128@gmail.com"
+
 end
