@@ -6,6 +6,9 @@ require 'pivotal-tracker' #https://github.com/jsmestad/pivotal-tracker
 require 'mail'
 require 'net/smtp'
 require 'heroku-api'
+require 'github_api'
+require "uri"
+
 
 ENV["RAILS_ENV"] ||= "development"
 require "#{File.dirname(__FILE__)}/../config/environment.rb"
@@ -44,12 +47,23 @@ class Commit
 
 end
 
-def get_releases
-	heroku = Heroku::API.new(:api_key => HEROKU_API_KEY)
-	releases = heroku.get_releases('clarityfm-deploy-summary')
-	p releases.body.first
-	p releases.body.last
+def get_commits_from_github
+	uri = URI.parse("https://api.github.com/repos/clarityfm/clarity/commits?access_token=c2c039387a8fa7007b37116a516606c4bc07afab")
+	http = Net::HTTP.new(uri.host, uri.port)
+	http.use_ssl = true
+	http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+	request = Net::HTTP::Get.new(uri.request_uri)
+	response = http.request(request)
+	return response.body
 end
+
+#def get_releases
+#	heroku = Heroku::API.new(:api_key => HEROKU_API_KEY)
+#	releases = heroku.get_releases('clarityfm-deploy-summary')
+#	p releases.body.first
+#	p releases.body.last
+#end
 
 def get_story_from_message(message)
 	story_id = nil
@@ -75,10 +89,8 @@ def remove_story_tag_from_message(message)
 end
 
 def get_commits
-	file = File.open("commits_examples")
-
 	commits = Array.new
-	parsed = JSON.parse(file.readline)
+	parsed = JSON.parse(get_commits_from_github())
 	parsed.each do |act_data|
 		message = act_data['commit']['message']
 		story = get_story_from_message(message)
@@ -189,4 +201,3 @@ end
 del = distribute_commits()
 text = compose_email(del)
 send_email(text)
-#get_releases
