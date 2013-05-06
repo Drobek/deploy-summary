@@ -2,6 +2,11 @@
 
 require 'rubygems'
 require 'json'
+require 'pivotal-tracker' #https://github.com/jsmestad/pivotal-tracker 
+
+PIVOTAL_PROJECT_ID = 444391
+PIVOTAL_ACCESS_TOKEN = 'a479c65816fd6910ebfbe0c3700c6900'
+GITHUB_ACCESS_TOKEN = 'c2c039387a8fa7007b37116a516606c4bc07afab'
 
 class Commit
 	@author_name
@@ -40,7 +45,7 @@ def get_story_from_message(message)
 		message.sub(/\[(.*?)#.*\]/){ story_type = $1 }
 	end
 	if (!story_id && !story_type && message.include?('merge'))
-			story_type = 'merge'
+		story_type = 'merge'
 	end
 	ret = [story_id,story_type]
 	return ret
@@ -56,7 +61,7 @@ def get_commits
 		story = get_story_from_message(message)
 		story_id = story[0]
 		story_type = story[1]
-
+		
 		act_commit = Commit.new(act_data['commit']['author']['name'],
 			act_data['commit']['author']['email'],
 			act_data['commit']['committer']['name'],
@@ -70,5 +75,45 @@ def get_commits
 	return commits
 end
 
-commits = get_commits()
+def get_pivotal_project
+	PivotalTracker::Client.token = PIVOTAL_ACCESS_TOKEN
+	PivotalTracker::Client.use_ssl = true
+	return PivotalTracker::Project.find(PIVOTAL_PROJECT_ID)
+end
+
+def get_story_info(project, story_id)
+	return project.stories.find(story_id)
+end
+
+def distribute_commits
+	delivered = Array.new
+	in_progress = Array.new
+	other = Array.new
+	commits = get_commits()
+	project = get_pivotal_project
+	commits.each do |commit|
+		story_id = commit.story_id
+		if (story_id)
+			story_type = commit.story_type
+			if (story_type && (story_type.include?('fix') || story_type.include?('deliver')))
+				story = get_story_info(project, commit.story_id)
+				act = [story.name, story.url, story.description]
+				delivered.push(act)
+			else
+				story = get_story_info(project, commit.story_id)
+				act = [story.name, story.url, commit.message]
+				in_progress.push(act)
+			end
+		else
+			if (!commit.message.downcase.include?('merge'))
+				act = [commit.author_name, commit.author_email, commit.message]
+				other.push(act)
+			end
+		end
+	end
+	return [delivered, in_progress, other]
+end
+
+del = distribute_commits()
+p del
 #p commits
