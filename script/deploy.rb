@@ -3,6 +3,7 @@
 require 'rubygems'
 require 'json'
 require 'pivotal-tracker' #https://github.com/jsmestad/pivotal-tracker 
+require 'mail'
 
 PIVOTAL_PROJECT_ID = 444391
 PIVOTAL_ACCESS_TOKEN = 'a479c65816fd6910ebfbe0c3700c6900'
@@ -124,6 +125,27 @@ def distribute_commits
 	return [delivered, in_progress, other]
 end
 
+def compose_email(commits)
+	body = "<h1>Deploy summary</h1>"
+	body += "<h2>Delivered stories</h2><ul>"
+	delivered = commits[0]
+	delivered.each do |commit|
+		body += "<li> #{commit[0]} <a href=\"#{commit[1]}\">#{commit[1]}</a>: #{commit[2]}</li>"
+	end
+	body += "</ul><h2>In progress stories</h2><ul>"
+	in_progress = commits[1]
+	in_progress.each do |commit|
+		body += "<li> #{commit[0]} <a href=\"#{commit[1]}\">#{commit[1]}</a>: #{commit[2]}</li>"
+	end
+	body += "</ul><h2>Other commits</h2><ul>"
+	other = commits[2]
+	other.each do |commit|
+		body += "<li> #{commit[0]} (#{commit[1]}): #{commit[2]}</li>"
+	end
+	body += "</ul>"
+	return body
+end
+
 del = distribute_commits()
-p del
+p compose_email(del)
 #p commits
