@@ -5,10 +5,12 @@ require 'json'
 require 'pivotal-tracker' #https://github.com/jsmestad/pivotal-tracker 
 require 'mail'
 require 'net/smtp'
+require 'heroku-api'
 
 PIVOTAL_PROJECT_ID = 444391
 PIVOTAL_ACCESS_TOKEN = 'a479c65816fd6910ebfbe0c3700c6900'
 GITHUB_ACCESS_TOKEN = 'c2c039387a8fa7007b37116a516606c4bc07afab'
+HEROKU_API_KEY = '61dcc21f-0167-46cc-b1c5-cae0721e05ec'
 
 class Commit
 	@author_name
@@ -37,6 +39,13 @@ class Commit
 		return "<\#Commit by =#{self.author_name} (#{self.author_email}) story_id: #{self.story_id} story_type: #{self.story_type})>"
 	end
 
+end
+
+def get_releases
+	heroku = Heroku::API.new(:api_key => HEROKU_API_KEY)
+	releases = heroku.get_releases('clarityfm-deploy-summary')
+	p releases.body.first
+	p releases.body.last
 end
 
 def get_story_from_message(message)
@@ -177,3 +186,4 @@ end
 del = distribute_commits()
 text = compose_email(del)
 send_email(text)
+get_releases
