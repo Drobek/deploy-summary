@@ -104,8 +104,8 @@ def distribute_commits
 	project = get_pivotal_project
 	commits.each do |commit|
 		story_id = commit.story_id
+		story_type = commit.story_type
 		if (story_id)
-			story_type = commit.story_type
 			if (story_type && (story_type.include?('fix') || story_type.include?('deliver')))
 				story = get_story_info(project, commit.story_id)
 				act = [story.name, story.url, story.description]
@@ -147,5 +147,5 @@ def compose_email(commits)
 end
 
 del = distribute_commits()
-p compose_email(del)
+#p compose_email(del)
 #p commits
